@@ -1,0 +1,6 @@
+aiohttp==3.6.1
+aiodns==2.0.0
+cchardet==2.1.4
+aiofiles==0.4.0
+asynctest==0.13.0
+beautifulsoup4==4.8.1
