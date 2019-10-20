@@ -54,15 +54,15 @@ class Parser(object):
             title = summary[0].find('strong', 'tit_movie').string.strip()
             meta_list = summary[0].find('dl', 'list_movie')
             dds = meta_list.find_all('dd')
-        except (IndexError, ValueError) as e:
+        except (IndexError, ValueError, AttributeError) as e:
             return None
         try:
             genre = dds[0].string.strip()
-        except (IndexError, ValueError) as e:
+        except (IndexError, ValueError, AttributeError) as e:
             genre = 'N/A'
         try:
             country = dds[1].string.strip()
-        except (IndexError, ValueError) as e:
+        except (IndexError, ValueError, AttributeError) as e:
             country = 'N/A'
         running_time = dds[3].string
         if running_time:
