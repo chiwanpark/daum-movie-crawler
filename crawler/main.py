@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
+import heapq
 import random
 import asyncio
-from collections import deque
 
 import aiohttp
 import aiofiles
@@ -14,7 +14,7 @@ from crawler.proxy import ProxyMixin
 
 class Main(ProxyMixin):
     def __init__(self):
-        self._tasks = deque()
+        self._tasks = []
         self._visited = set()
         self._uas = [
             'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0',
@@ -85,6 +85,13 @@ class Main(ProxyMixin):
 
         return metadata
 
+    def _push_url(self, url):
+        flag = -1 if 'moviePoint' in url or 'grade' in url else 0
+        heapq.heappush(self._tasks, (flag, url))
+
+    def _pop_url(self):
+        return heapq.heappop(self._tasks)[1]
+
     def _parse_content(self, url, content):
         if url in self._visited:
             return
@@ -94,8 +101,8 @@ class Main(ProxyMixin):
         parser = Parser(content)
         links = parser.get_links() - self._visited
         self.logger.info(f'{len(links)} links added')
-        links = sorted(list(links), key=lambda x: 0 if 'moviePoint' in x or 'grade' in x else 1)
-        self._tasks.extend(links)
+        for link in links:
+            self._push_url(link)
 
         if 'other/moviePoint' in url:
             ratings = self._parse_ratings_per_user(url, parser)
@@ -133,26 +140,27 @@ class Main(ProxyMixin):
         self._metadata = []
 
     async def _run_main(self):
-        self.logger.info('update proxies...')
-        await self.update_proxy()
+        if self._use_proxy:
+            self.logger.info('update proxies...')
+            await self.update_proxy()
 
         while len(self._tasks) > 0:
             batch = []
             for _ in range(min(len(self._tasks), self._sz_batch)):
-                batch.append(self._tasks.popleft())
+                batch.append(self._pop_url())
             self.logger.info(f'len(batch): {len(batch)}, len(self._tasks): {len(self._tasks)}')
 
             results = await self._fetch_contents(batch)
             for url, result in results.items():
                 if result is None:
-                    self._tasks.append(url)
+                    self._push_url(url)
                 else:
                     self._parse_content(url, result)
 
             await self._flush_data()
 
     def run(self, seed, output_path='./res', use_proxy=True, sz_batch=10):
-        self._tasks.append(seed)
+        self._push_url(seed)
         self._use_proxy = use_proxy
         self._sz_batch = sz_batch
         self._output_path = output_path
