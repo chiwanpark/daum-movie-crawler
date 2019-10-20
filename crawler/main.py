@@ -94,6 +94,7 @@ class Main(ProxyMixin):
         parser = Parser(content)
         links = parser.get_links() - self._visited
         self.logger.info(f'{len(links)} links added')
+        links = sorted(list(links), key=lambda x: 0 if 'moviePoint' in x else 1)
         self._tasks.extend(links)
 
         if 'other/moviePoint' in url:
