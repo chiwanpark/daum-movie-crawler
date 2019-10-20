@@ -64,14 +64,17 @@ class Parser(object):
             country = dds[1].string.strip()
         except (IndexError, ValueError, AttributeError) as e:
             country = 'N/A'
-        running_time = dds[3].string
-        if running_time:
-            running_time = _valid_runtime_ptn.search(running_time.strip())
+        try:
+            running_time = dds[3].string
             if running_time:
-                running_time = int(running_time.group(1))
+                running_time = _valid_runtime_ptn.search(running_time.strip())
+                if running_time:
+                    running_time = int(running_time.group(1))
+                else:
+                    running_time = -1
             else:
                 running_time = -1
-        else:
+        except (IndexError, ValueError, AttributeError) as e:
             running_time = -1
 
         return {
