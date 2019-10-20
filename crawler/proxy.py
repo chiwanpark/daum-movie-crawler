@@ -60,9 +60,17 @@ class ProxyMixin(LoggingMixin):
         return len(self._proxies) > 0
 
     def pick_proxy(self, google_passed=True, support_https=True):
+        if len(self._proxies) == 0:
+            return None
         proxy = random.choice(self._proxies)
         while (google_passed and not proxy['google_passed']) or \
               (support_https and not proxy['support_https']):
             proxy = random.choice(self._proxies)
 
         return f'http://{proxy["addr"]}'
+
+    def remove_proxy(self, addr):
+        if addr is None:
+            return
+        self.logger.info(f'remove proxy {addr}')
+        self._proxies = [proxy for proxy in self._proxies if proxy['addr'] not in addr]

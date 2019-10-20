@@ -25,13 +25,13 @@ class ProxyMixinTest(asynctest.TestCase, LoggingMixin):
                     async with sess.get('http://icanhazip.com', proxy=proxy) as resp:
                         if resp.status == 200:
                             success += 1
-                            self.logger.info("connection test succeeded")
+                            self.logger.info('connection test succeeded')
                         else:
-                            self.logger.info("connection test failed (status = %d)", resp.status)
+                            self.logger.info('connection test failed (status = %d)', resp.status)
                 except aiohttp.ClientConnectionError:
-                    self.logger.info("connection test failed (proxy connection error)")
+                    self.logger.info('connection test failed (proxy connection error)')
                 except asyncio.TimeoutError:
-                    self.logger.info("connection test failed (timeout)")
+                    self.logger.info('connection test failed (timeout)')
 
         self.assertGreaterEqual(success, 1)
 
